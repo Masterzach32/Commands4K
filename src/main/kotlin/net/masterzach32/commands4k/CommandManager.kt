@@ -1,10 +1,8 @@
 package net.masterzach32.commands4k
 
-import sx.blah.discord.api.events.IListener
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
 import java.util.*
 
-class CommandManager : IListener<MessageReceivedEvent> {
+class CommandManager {
 
     private val commandList: MutableList<Command> = ArrayList()
     private val quickLookup: MutableMap<String, Command> = HashMap()
@@ -18,8 +16,8 @@ class CommandManager : IListener<MessageReceivedEvent> {
     @Synchronized
     fun sortCommands(): CommandManager {
         commandList.sortWith(Comparator { one, two ->
-            if(one.permission.ordinal != two.permission.ordinal) {
-                if(one.permission.ordinal > two.permission.ordinal)
+            if(one.botPerm.ordinal != two.botPerm.ordinal) {
+                if(one.botPerm.ordinal > two.botPerm.ordinal)
                     return@Comparator 1
                 else
                     return@Comparator -1
@@ -49,9 +47,5 @@ class CommandManager : IListener<MessageReceivedEvent> {
         commandList.remove(cmd)
         cmd.aliases.forEach { quickLookup.remove(it) }
         return sortCommands()
-    }
-
-    override fun handle(event: MessageReceivedEvent) {
-
     }
 }

@@ -1,10 +1,13 @@
 package net.masterzach32.commands4k
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
+import sx.blah.discord.handle.obj.Permissions
 import sx.blah.discord.util.MessageBuilder
 import java.util.*
 
-abstract class Command(val name: String, vararg aliases: String, val hidden: Boolean = false, val permission: Permission = Permission.NORMAL) {
+abstract class Command(val name: String, vararg aliases: String, val hidden: Boolean = false,
+                       val usedInPrivate: Boolean = false, val botPerm: Permission = Permission.NORMAL,
+                       val discordPerms: List<Permissions> = listOf()) {
 
     val aliases: MutableList<String> = ArrayList()
 
@@ -14,7 +17,8 @@ abstract class Command(val name: String, vararg aliases: String, val hidden: Boo
         aliases.forEach { this.aliases.add(it) }
     }
 
-    abstract fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent, permission: Permission): MessageBuilder?
+    abstract fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent,
+                         builder: AdvancedMessageBuilder): AdvancedMessageBuilder?
 
     abstract fun getCommandHelp(usage: MutableMap<String, String>)
 
@@ -27,6 +31,6 @@ abstract class Command(val name: String, vararg aliases: String, val hidden: Boo
     }
 
     override fun toString(): String {
-        return "$name - ${Arrays.toString(aliases.toTypedArray())}\nMinimum Permission: $permission"
+        return "$name - ${Arrays.toString(aliases.toTypedArray())}\nMinimum Permission: $botPerm"
     }
 }

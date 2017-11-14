@@ -2,8 +2,7 @@ package net.masterzach32.commands4k
 
 import sx.blah.discord.handle.obj.IChannel
 import sx.blah.discord.handle.obj.IMessage
-import sx.blah.discord.util.EmbedBuilder
-import sx.blah.discord.util.MessageBuilder
+import sx.blah.discord.util.*
 
 /*
  * Command4K - Created on 8/25/17
@@ -33,7 +32,10 @@ class AdvancedMessageBuilder(channel: IChannel) : MessageBuilder(channel.client)
     override fun build(): IMessage {
         val message = super.build()
         if (autoDeleteTime > 0) {
-            waitAndDeleteMessage(message, autoDeleteTime)
+            Thread {
+                Thread.sleep((autoDeleteTime * 1000).toLong())
+                RequestBuffer.request { message?.delete() }
+            }.start()
         }
         return message
     }

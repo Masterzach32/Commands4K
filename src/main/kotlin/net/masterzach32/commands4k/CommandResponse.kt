@@ -5,20 +5,6 @@ import sx.blah.discord.util.*
 import java.awt.Color
 import java.util.*
 
-fun insufficientPermission(channel: IChannel, perm: Permission, required: Permission): AdvancedMessageBuilder? {
-    if (perm.ordinal < Permission.NORMAL.ordinal)
-        return null
-    val builder = AdvancedMessageBuilder(channel)
-    builder.withContent("**You do not have the permissions required to use this command.** [Required: **$required**, you have **$perm**]")
-    return builder.withAutoDelete(30)
-}
-
-fun insufficientPermission(channel: IChannel, perm: Permissions): AdvancedMessageBuilder {
-    val builder = AdvancedMessageBuilder(channel)
-    builder.withContent("**You do not have the permissions required to use this command.** [Required: **DISCORD $perm**]")
-    return builder.withAutoDelete(30)
-}
-
 fun getWrongArgumentsMessage(channel: IChannel, cmd: Command, cmdUsed: String): AdvancedMessageBuilder {
     val builder = AdvancedMessageBuilder(channel)
     builder.withContent("Incorrect number of arguments. Use `~help $cmdUsed` for details with this command.\n")
@@ -75,8 +61,4 @@ fun editMessage(message: IMessage?, contents: String): IMessage? {
         }
         return@request null
     }.get()
-}
-
-fun userHasPermission(user: IUser, guild: IGuild, permissions: Permissions): Boolean {
-    return guild.getRolesForUser(user).filter { it.permissions.contains(permissions) }.isNotEmpty()
 }
