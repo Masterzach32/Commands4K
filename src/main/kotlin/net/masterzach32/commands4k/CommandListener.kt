@@ -24,17 +24,17 @@ import sx.blah.discord.util.RequestBuffer
  * @author Zach Kozar
  * @version 11/10/2017
  */
-class CommandListener(val commandPrefix: IGuild.() -> String, val botPermission: IGuild.(IUser) -> Permission) :
+class CommandListener(val commandPrefix: (IGuild?) -> String, val botPermission: IUser.(IGuild?) -> Permission) :
         CommandManager(), IListener<MessageReceivedEvent> {
 
-    val logger = LoggerFactory.getLogger("Commands4K")
+    private val logger = LoggerFactory.getLogger("Commands4K")
 
     init {
         add(HelpCommand(this, commandPrefix, botPermission))
     }
 
     override fun handle(event: MessageReceivedEvent) {
-        val commandPrefix = event.guild.commandPrefix()
+        val commandPrefix = commandPrefix(event.guild)
         if (event.author.isBot || !event.message.content.startsWith(commandPrefix))
             return
 
@@ -48,9 +48,9 @@ class CommandListener(val commandPrefix: IGuild.() -> String, val botPermission:
         params = tmp.copyOfRange(1, tmp.size)
         val command = getCommand(identifier)
         if (command != null && (command.usedInPrivate == event.channel.isPrivate || (command.usedInPrivate && !event.channel.isPrivate))) {
-            val userPerms = event.guild.botPermission(event.author)
+            val userPerms = event.author.botPermission(event.guild)
 
-            logger.debug("Shard: ${event.message.shard.info[0]} Guild: ${event.guild.stringID} " +
+            logger.debug("Shard: ${event.message.shard.info[0]} Guild: ${event.guild?.stringID} " +
                     "Channel: ${event.channel.stringID} User: ${event.author.stringID} Command: " +
                     "\"${event.message.content}\"")
 
@@ -60,7 +60,7 @@ class CommandListener(val commandPrefix: IGuild.() -> String, val botPermission:
 
                 if (userPerms < command.botPerm)
                     null //insufficientPermission(event.channel, userPerms, command.botPerm)
-                else if (event.author.getPermissionsForGuild(event.guild).containsAll(command.discordPerms))
+                else if (event.guild != null && !event.author.getPermissionsForGuild(event.guild).containsAll(command.discordPerms))
                     insufficientPermission(event.channel,
                             command.discordPerms
                                     .filter { !event.author.getPermissionsForGuild(event.guild).contains(it) })

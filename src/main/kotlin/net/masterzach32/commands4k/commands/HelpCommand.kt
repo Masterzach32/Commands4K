@@ -18,8 +18,8 @@ import sx.blah.discord.util.EmbedBuilder
  * @author Zach Kozar
  * @version 11/14/2017
  */
-internal class HelpCommand(private val cmds: CommandManager, private val commandPrefix: IGuild.() -> String,
-                           private val botPermission: IGuild.(IUser) -> Permission) :
+internal class HelpCommand(private val cmds: CommandManager, private val commandPrefix: (IGuild?) -> String,
+                           private val botPermission: IUser.(IGuild?) -> Permission) :
                            Command("Help", "help", usedInPrivate = true, botPerm = Permission.NONE) {
 
     override fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent,
@@ -30,12 +30,12 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                 embed.withDesc("${event.author.mention()} A list of commands has been sent to your direct messages!")
                 AdvancedMessageBuilder(event.channel).withEmbed(embed).build()
             }
-            val defaultCommandPrefix = event.guild.commandPrefix()
+            val defaultCommandPrefix = commandPrefix(event.guild)
             builder.withChannel(event.client.getOrCreatePMChannel(event.author))
             embed.withTitle("Help and Info:")
             embed.withDesc("")
             var i = 0
-            while (i <= event.guild.botPermission(event.author).ordinal) {
+            while (i <= event.author.botPermission(event.guild).ordinal) {
                 var str = ""
                 cmds.getCommandList()
                         .filter { it.botPerm == Permission.values()[i] }
@@ -54,7 +54,7 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                             "Or pledge a small amount on Patreon:\n<https://patreon.com/ultimatedoge>\n" +
                             "Join SwagBot Hub:\nhttps://discord.me/swagbothub\n" +
                             "Want to add SwagBot to your server? Click the link below:\nhttps://discordapp.com/oauth2/authorize?client_id=217065780078968833&scope=bot&permissions=8\n\n" +
-                            "Note you can only see the commands available to you with your permission **${event.guild.botPermission(event.author)}** in **${event.guild.name}**")
+                            "Note you can only see the commands available to you with your permission **${event.author.botPermission(event.guild)}** in **${event.guild?.name}**")
             builder.withEmbed(embed.build())
         } else {
             builder.withEmbed(embed.withColor(RED).withDesc("No command found with alias `${args[0]}`").build()) as AdvancedMessageBuilder
