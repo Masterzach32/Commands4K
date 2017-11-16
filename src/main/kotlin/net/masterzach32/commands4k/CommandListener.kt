@@ -24,8 +24,8 @@ import sx.blah.discord.util.RequestBuffer
  * @author Zach Kozar
  * @version 11/10/2017
  */
-class CommandListener(val commandPrefix: (IGuild?) -> String, val botPermission: IUser.(IGuild?) -> Permission) :
-        CommandManager(), IListener<MessageReceivedEvent> {
+class CommandListener(private val commandPrefix: (IGuild?) -> String, private val botPermission: IUser.(IGuild?) -> Permission,
+                      private val commandExecutedEvent: (IGuild?, Command) -> Unit) : CommandManager(), IListener<MessageReceivedEvent> {
 
     private val logger = LoggerFactory.getLogger("Commands4K")
 
@@ -64,8 +64,10 @@ class CommandListener(val commandPrefix: (IGuild?) -> String, val botPermission:
                     insufficientPermission(event.channel,
                             command.discordPerms
                                     .filter { !event.author.getPermissionsForGuild(event.guild).contains(it) })
-                else
+                else {
+                    commandExecutedEvent(event.guild, command)
                     command.execute(identifier, params, event, builder)
+                }
             } catch (e: MissingPermissionsException) {
                 embed.withTitle("Missing Permissions!")
                 embed.withDesc("I need the Discord permission ${e.message} to use that command!")
