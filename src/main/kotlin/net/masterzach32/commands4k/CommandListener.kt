@@ -1,5 +1,6 @@
 package net.masterzach32.commands4k
 
+import net.masterzach32.commands4k.commands.HelpCommand
 import org.slf4j.LoggerFactory
 import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
@@ -23,10 +24,14 @@ import sx.blah.discord.util.RequestBuffer
  * @author Zach Kozar
  * @version 11/10/2017
  */
-class CommandListener(val cmds: CommandManager, val commandPrefix: IGuild.() -> String,
-                      val botPermission: IGuild.(IUser) -> Permission) : IListener<MessageReceivedEvent> {
+class CommandListener(val commandPrefix: IGuild.() -> String, val botPermission: IGuild.(IUser) -> Permission) :
+        CommandManager(), IListener<MessageReceivedEvent> {
 
     val logger = LoggerFactory.getLogger("Commands4K")
+
+    init {
+        add(HelpCommand(this, commandPrefix, botPermission))
+    }
 
     override fun handle(event: MessageReceivedEvent) {
         val commandPrefix = event.guild.commandPrefix()
@@ -41,7 +46,7 @@ class CommandListener(val cmds: CommandManager, val commandPrefix: IGuild.() -> 
                 .split(" ").toTypedArray()
         identifier = tmp[0]
         params = tmp.copyOfRange(1, tmp.size)
-        val command = cmds.getCommand(identifier)
+        val command = getCommand(identifier)
         if (command != null && (command.usedInPrivate == event.channel.isPrivate || (command.usedInPrivate && !event.channel.isPrivate))) {
             val userPerms = event.guild.botPermission(event.author)
 

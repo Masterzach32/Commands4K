@@ -2,7 +2,7 @@ package net.masterzach32.commands4k
 
 import java.util.*
 
-class CommandManager {
+open class CommandManager {
 
     private val commandList: MutableList<Command> = ArrayList()
     private val quickLookup: MutableMap<String, Command> = HashMap()
