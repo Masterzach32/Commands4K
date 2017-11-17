@@ -47,7 +47,10 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String, private va
         identifier = tmp[0]
         params = tmp.copyOfRange(1, tmp.size)
         val command = getCommand(identifier)
-        if (command != null && (command.usedInPrivate == event.channel.isPrivate || (command.usedInPrivate && !event.channel.isPrivate))) {
+        if (command != null) {
+            if (command.scope == Command.Scope.GUILD && event.guild == null ||
+                    command.scope == Command.Scope.PRIVATE && event.guild != null)
+                return
             val userPerms = event.author.botPermission(event.guild)
 
             logger.debug("Shard: ${event.message.shard.info[0]} Guild: ${event.guild?.stringID} " +

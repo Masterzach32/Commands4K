@@ -20,7 +20,7 @@ import sx.blah.discord.util.EmbedBuilder
  */
 internal class HelpCommand(private val cmds: CommandManager, private val commandPrefix: (IGuild?) -> String,
                            private val botPermission: IUser.(IGuild?) -> Permission) :
-                           Command("Help", "help", usedInPrivate = true, botPerm = Permission.NONE) {
+                           Command("Help", "help", botPerm = Permission.NONE) {
 
     override fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent,
                          builder: AdvancedMessageBuilder): AdvancedMessageBuilder {
@@ -64,6 +64,7 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                         embed.withColor(GREY)
                         embed.withTitle("Command: **${it.name}**")
                         embed.appendField("Aliases:", "${it.aliases}", true)
+                        embed.appendField("Scope:", "${it.scope}", true)
                         embed.appendField("Permission Required:", "${it.botPerm}", true)
                         var str = ""
                         val map = HashMap<String, String>()

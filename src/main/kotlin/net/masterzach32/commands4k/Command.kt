@@ -6,8 +6,12 @@ import sx.blah.discord.util.MessageBuilder
 import java.util.*
 
 abstract class Command(val name: String, vararg aliases: String, val hidden: Boolean = false,
-                       val usedInPrivate: Boolean = false, val botPerm: Permission = Permission.NORMAL,
+                       val scope: Scope = Scope.ALL, val botPerm: Permission = Permission.NORMAL,
                        val discordPerms: List<Permissions> = listOf()) {
+
+    enum class Scope {
+        ALL, GUILD, PRIVATE
+    }
 
     val aliases: MutableList<String> = ArrayList()
 
