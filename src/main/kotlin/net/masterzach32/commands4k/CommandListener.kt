@@ -90,6 +90,8 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String, private va
                 AdvancedMessageBuilder(event.channel).withEmbed(embed)
             }
             RequestBuffer.request { response?.build() }
+            if (event.channel.typingStatus)
+                event.channel.toggleTypingStatus()
         }
     }
 

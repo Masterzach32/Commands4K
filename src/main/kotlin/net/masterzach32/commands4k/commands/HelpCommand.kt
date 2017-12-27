@@ -20,14 +20,14 @@ import sx.blah.discord.util.EmbedBuilder
  */
 internal class HelpCommand(private val cmds: CommandManager, private val commandPrefix: (IGuild?) -> String,
                            private val botPermission: IUser.(IGuild?) -> Permission) :
-                           Command("Help", "help", botPerm = Permission.NONE) {
+                           Command("Help", "help", "h", botPerm = Permission.NONE) {
 
     override fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent,
                          builder: AdvancedMessageBuilder): AdvancedMessageBuilder {
         val embed = EmbedBuilder().withColor(GREY)
         if (args.isEmpty()) {
             if (!event.channel.isPrivate) {
-                embed.withDesc("${event.author.mention()} A list of commands has been sent to your direct messages!")
+                embed.withDesc("${event.author.mention()} A list of commands has been sent to you privately.")
                 AdvancedMessageBuilder(event.channel).withEmbed(embed).build()
             }
             val defaultCommandPrefix = commandPrefix(event.guild)
