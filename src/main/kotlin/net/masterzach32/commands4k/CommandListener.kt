@@ -89,9 +89,17 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String, private va
                 embed.withDesc(str)
                 AdvancedMessageBuilder(event.channel).withEmbed(embed)
             }
-            RequestBuffer.request { response?.build() }
-            if (event.channel.typingStatus)
-                event.channel.toggleTypingStatus()
+            RequestBuffer.request {
+                try {
+                    response?.build()
+                } catch (e: MissingPermissionsException) {
+                    if (e.missingPermissions.contains(Permissions.EMBED_LINKS)) {
+                        AdvancedMessageBuilder(event.channel).withContent("I use discord embeds for the " +
+                                "majority of my features. In order to work properly, I need the **Embed Links** permission.").build()
+                    }
+                    e.printStackTrace()
+                }
+            }
         }
     }
 

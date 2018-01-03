@@ -49,11 +49,6 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                     "**Note**: Command prefixes may be different per guild!\n" +
                             "**Permissions**: ${Permission.values().toList()}\n" +
                             "To view more information for a command, use `${defaultCommandPrefix}help <command>`\n\n" +
-                            "Check out the development for SwagBot at:\nhttps://github.com/Masterzach32/SwagBot\n" +
-                            "Help development of SwagBot by donating to my PayPal:\nhttps://paypal.me/ultimatedoge\n" +
-                            "Or pledge a small amount on Patreon:\n<https://patreon.com/ultimatedoge>\n" +
-                            "Join SwagBot Hub:\nhttps://discord.me/swagbothub\n" +
-                            "Want to add SwagBot to your server? Click the link below:\nhttps://discordapp.com/oauth2/authorize?client_id=217065780078968833&scope=bot&permissions=8\n\n" +
                             "Note you can only see the commands available to you with your permission **${event.author.botPermission(event.guild)}** in **${event.guild?.name}**")
             builder.withEmbed(embed.build())
         } else {
