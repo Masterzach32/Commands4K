@@ -22,6 +22,12 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                            private val botPermission: IUser.(IGuild?) -> Permission) :
                            Command("Help", "help", "h", botPerm = Permission.NONE) {
 
+    init {
+        help.desc = "Display all available commands, or get more info on a specific command."
+        help.usage[""] = "Display a list of commands."
+        help.usage["<command>"] = "Display detailed information about that command."
+    }
+
     override fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent,
                          builder: AdvancedMessageBuilder): AdvancedMessageBuilder {
         val embed = EmbedBuilder().withColor(GREY)
@@ -49,39 +55,37 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                     "**Note**: Command prefixes may be different per guild!\n" +
                             "**Permissions**: ${Permission.values().toList()}\n" +
                             "To view more information for a command, use `${defaultCommandPrefix}help <command>`\n\n" +
-                            "Note you can only see the commands available to you with your permission **${event.author.botPermission(event.guild)}** in **${event.guild?.name}**")
+                            "Note you can only see the commands available to you with your permission " +
+                            "**${event.author.botPermission(event.guild)}** in **${event.guild?.name}**")
             builder.withEmbed(embed.build())
         } else {
-            builder.withEmbed(embed.withColor(RED).withDesc("No command found with alias `${args[0]}`").build()) as AdvancedMessageBuilder
-            cmds.getCommandList()
-                    .filter { it.aliases.contains(args[0]) }
-                    .forEach {
-                        embed.withColor(GREY)
-                        embed.withTitle("Command: **${it.name}**")
-                        embed.appendField("Aliases:", "${it.aliases}", true)
-                        embed.appendField("Scope:", "${it.scope}", true)
-                        embed.appendField("Permission Required:", "${it.botPerm}", true)
-                        var str = ""
-                        val map = HashMap<String, String>()
-                        it.getCommandHelp(map)
-                        if (map.containsKey(""))
-                            str += "**Description**: ${map[""]}\n\n"
-                        str += "**Usage**:"
-                        map.forEach { k, v ->
-                            str += "\n`${commandPrefix(event.guild)}${args[0]} $k` $v"
-                        }
-                        if (str.isEmpty())
-                            str = "No help text."
-                        embed.withDesc(str)
-                        builder.withEmbed(embed.build())
+            val cmd = cmds.getCommandList().filter { it.aliases.contains(args[0]) }.firstOrNull()
+            if (cmd == null)
+                builder.withEmbed(embed.withColor(RED).withDesc("No command found with alias `${args[0]}`").build())
+            else {
+                embed.withColor(GREY)
+                embed.withTitle("Command: **${cmd.name}**")
+                embed.appendField("Aliases:", "${cmd.aliases}", true)
+                embed.appendField("Scope:", "${cmd.scope}", true)
+                embed.appendField("Permission Required:", "${cmd.botPerm}", true)
+
+                if (cmd.help.hasDesc())
+                    embed.appendDesc("**Description:** ${cmd.help.desc}\n\n")
+
+                if (cmd.help.hasUsage()) {
+                    embed.appendDesc("**Usage:**")
+                    cmd.help.usage.forEach {
+                        embed.appendDesc("\n`${commandPrefix(event.guild)}${args[0]} ${it.key}` ${it.value}")
                     }
+                }
+
+                if (!cmd.help.hasHelpText())
+                    embed.withDesc("No help text.")
+
+                builder.withEmbed(embed.build())
+            }
 
         }
         return builder
-    }
-
-    override fun getCommandHelp(usage: MutableMap<String, String>) {
-        usage.put("", "Display a list of commands.")
-        usage.put("<command>", "Display detailed information about that command.")
     }
 }
