@@ -24,8 +24,10 @@ import sx.blah.discord.util.RequestBuffer
  * @author Zach Kozar
  * @version 11/10/2017
  */
-class CommandListener(private val commandPrefix: (IGuild?) -> String, private val botPermission: IUser.(IGuild?) -> Permission,
-                      private val commandExecutedEvent: (IGuild?, Command) -> Unit) : CommandManager(), IListener<MessageReceivedEvent> {
+class CommandListener(private val commandPrefix: (IGuild?) -> String,
+                      private val botPermission: IUser.(IGuild?) -> Permission,
+                      private val commandExecutedEvent: (IGuild?, Command) -> Unit) : CommandManager(),
+        IListener<MessageReceivedEvent> {
 
     private val logger = LoggerFactory.getLogger("Commands4K")
 
@@ -63,7 +65,8 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String, private va
 
                 if (userPerms < command.botPerm)
                     null //insufficientPermission(event.channel, userPerms, command.botPerm)
-                else if (event.guild != null && !event.author.getPermissionsForGuild(event.guild).containsAll(command.discordPerms))
+                else if (event.guild != null &&
+                        !event.author.getPermissionsForGuild(event.guild).containsAll(command.discordPerms))
                     insufficientPermission(event.channel,
                             command.discordPerms
                                     .filter { !event.author.getPermissionsForGuild(event.guild).contains(it) })

@@ -64,7 +64,12 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                         var str = ""
                         val map = HashMap<String, String>()
                         it.getCommandHelp(map)
-                        map.forEach { k, v -> str += "\n`${if (k.isEmpty()) "default" else k}` $v" }
+                        if (map.containsKey(""))
+                            str += "**Description**: ${map[""]}\n\n"
+                        str += "**Usage**:"
+                        map.forEach { k, v ->
+                            str += "\n`${commandPrefix(event.guild)}${args[0]} $k` $v"
+                        }
                         if (str.isEmpty())
                             str = "No help text."
                         embed.withDesc(str)
