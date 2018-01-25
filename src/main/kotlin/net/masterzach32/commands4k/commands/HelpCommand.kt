@@ -59,28 +59,30 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                             "**${event.author.botPermission(event.guild)}** in **${event.guild?.name}**")
             builder.withEmbed(embed.build())
         } else {
-            val cmd = cmds.getCommandList().filter { it.aliases.contains(args[0]) }.firstOrNull()
+            val cmd = cmds.getCommandList().firstOrNull { it.aliases.contains(args[0]) }
             if (cmd == null)
                 builder.withEmbed(embed.withColor(RED).withDesc("No command found with alias `${args[0]}`").build())
             else {
                 embed.withColor(GREY)
                 embed.withTitle("Command: **${cmd.name}**")
-                embed.appendField("Aliases:", "${cmd.aliases}", true)
-                embed.appendField("Scope:", "${cmd.scope}", true)
-                embed.appendField("Permission Required:", "${cmd.botPerm}", true)
 
                 if (cmd.help.hasDesc())
-                    embed.appendDesc("**Description:** ${cmd.help.desc}\n\n")
+                    embed.appendField("Description:", "${cmd.help.desc}", false)
 
                 if (cmd.help.hasUsage()) {
-                    embed.appendDesc("**Usage:**")
+                    var str = ""
                     cmd.help.usage.forEach {
-                        embed.appendDesc("\n`${commandPrefix(event.guild)}${args[0]} ${it.key}` ${it.value}")
+                        str += "\n`${commandPrefix(event.guild)}${args[0]} ${it.key}` ${it.value}"
                     }
+                    embed.appendField("Usage:", str, false)
                 }
 
                 if (!cmd.help.hasHelpText())
                     embed.withDesc("No help text.")
+
+                embed.appendField("Aliases:", "${cmd.aliases}", false)
+                embed.appendField("Scope:", "${cmd.scope}", true)
+                embed.appendField("Permission Required:", "${cmd.botPerm}", true)
 
                 builder.withEmbed(embed.build())
             }
