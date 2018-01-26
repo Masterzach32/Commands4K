@@ -80,7 +80,7 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                 if (!cmd.help.hasHelpText())
                     embed.withDesc("No help text.")
 
-                embed.appendField("Aliases:", "${cmd.aliases}", false)
+                embed.appendField("Aliases:", "${cmd.aliases}", true)
                 embed.appendField("Scope:", "${cmd.scope}", true)
                 embed.appendField("Permission Required:", "${cmd.botPerm}", true)
 
