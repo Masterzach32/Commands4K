@@ -25,15 +25,18 @@ open class CommandManager {
     }
 
     @Synchronized
-    fun add(cmd: Command) {
-        commandList.forEach { other ->
-            cmd.aliases
-                    .filter { other.matchesAlias(it) }
-                    .forEach { throw IllegalArgumentException("Duplicate aliases: {${other.name}: $it} {${cmd.name}: $it}") }
-        }
-        commandList.add(cmd)
+    fun add(vararg cmds: Command) {
+        val toAdd = cmds.toList()
+        toAdd.forEach {cmd ->
+            commandList.forEach { other ->
+                cmd.aliases
+                        .filter { other.matchesAlias(it) }
+                        .forEach { throw IllegalArgumentException("Duplicate aliases: {${other.name}: $it} {${cmd.name}: $it}") }
+            }
+            commandList.add(cmd)
 
-        cmd.aliases.forEach { quickLookup[it] = cmd }
+            cmd.aliases.forEach { quickLookup[it] = cmd }
+        }
     }
 
     @Synchronized

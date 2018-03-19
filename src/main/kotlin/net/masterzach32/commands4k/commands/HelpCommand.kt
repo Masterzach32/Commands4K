@@ -57,7 +57,7 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                             "To view more information for a command, use `${defaultCommandPrefix}help <command>`\n\n" +
                             "Note you can only see the commands available to you with your permission " +
                             "**${event.author.botPermission(event.guild)}** in **${event.guild?.name}**")
-            builder.withEmbed(embed.build())
+            builder.withEmbed(embed)
         } else {
             val cmd = cmds.getCommandList().firstOrNull { it.aliases.contains(args[0]) }
             if (cmd == null)
@@ -84,7 +84,7 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                 embed.appendField("Scope:", "${cmd.scope}", true)
                 embed.appendField("Permission Required:", "${cmd.botPerm}", true)
 
-                builder.withEmbed(embed.build())
+                builder.withEmbed(embed)
             }
 
         }

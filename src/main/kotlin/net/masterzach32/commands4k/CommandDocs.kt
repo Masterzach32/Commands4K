@@ -1,6 +1,6 @@
 package net.masterzach32.commands4k
 
-class CommandHelp {
+class CommandDocs {
 
     var desc: String? = null
     val usage = mutableMapOf<String, String>()
@@ -14,7 +14,7 @@ class CommandHelp {
     }
 
     fun hasHelpText(): Boolean {
-        return  hasDesc() || hasUsage()
+        return hasDesc() || hasUsage()
     }
 
 }
