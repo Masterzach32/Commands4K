@@ -5,7 +5,7 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 
 val DEFAULT_EXEC: EventHandler = { null }
 
-class EventBuilder() : Builder<EventHandler> {
+class EventBuilder : Builder<EventHandler> {
 
     private var noArgsFunc = DEFAULT_EXEC
     private var privateFunc = DEFAULT_EXEC

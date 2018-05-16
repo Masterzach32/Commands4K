@@ -6,15 +6,13 @@ class HelpBuilder : Builder<CommandDocs> {
 
     val cmdHelp = CommandDocs()
 
-    fun description(desc: () -> String) {
-        cmdHelp.desc = desc.invoke()
-    }
+    var description: String? = null
 
-    fun usage(paramFormat: String, desc: () -> String) {
-        cmdHelp.usage[paramFormat] = desc.invoke()
-    }
+    val usage = mutableMapOf<String, String>()
 
     override fun build(): CommandDocs {
+        cmdHelp.desc = description
+        cmdHelp.usage.putAll(usage)
         return cmdHelp
     }
 }

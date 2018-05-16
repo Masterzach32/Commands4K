@@ -1,6 +1,7 @@
 package net.masterzach32.commands4k
 
 import net.masterzach32.commands4k.commands.HelpCommand
+import net.masterzach32.commands4k.events.CommandExecutedEvent
 import org.slf4j.LoggerFactory
 import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
@@ -25,8 +26,7 @@ import sx.blah.discord.util.RequestBuffer
  * @version 11/10/2017
  */
 class CommandListener(private val commandPrefix: (IGuild?) -> String,
-                      private val botPermission: IUser.(IGuild?) -> Permission,
-                      private val commandExecutedEvent: (IGuild?, Command) -> Unit) : CommandManager(),
+                      private val botPermission: IUser.(IGuild?) -> Permission) : CommandManager(),
         IListener<MessageReceivedEvent> {
 
     private val logger = LoggerFactory.getLogger("Commands4K")
@@ -71,7 +71,8 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String,
                             command.discordPerms
                                     .filter { !event.author.getPermissionsForGuild(event.guild).contains(it) })
                 else {
-                    commandExecutedEvent(event.guild, command)
+                    event.client.dispatcher.dispatch(CommandExecutedEvent(event.client, command, identifier,
+                            event.guild, event.channel, event.author))
                     command.execute(identifier, params, event, builder)
                 }
             } catch (e: MissingPermissionsException) {
@@ -109,7 +110,8 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String,
     private fun insufficientPermission(channel: IChannel, perm: Permission, required: Permission): AdvancedMessageBuilder {
         val builder = AdvancedMessageBuilder(channel)
         val embed = EmbedBuilder().withColor(RED)
-        builder.withContent("**You do not have the permissions required to use this command.** [Required: **$required**, you have **$perm**]")
+        builder.withContent("**You do not have the permissions required to use this command.** [Required:" +
+                " **$required**, you have **$perm**]")
         return builder.withAutoDelete(30)
     }
 
@@ -117,7 +119,8 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String,
         val builder = AdvancedMessageBuilder(channel)
         val embed = EmbedBuilder().withColor(RED)
         embed.withTitle("Permissions Error")
-        embed.withDesc("**You do not have the permissions required to use this command.** [Required: **DISCORD $discordPerms**]")
+        embed.withDesc("**You do not have the permissions required to use this command.** [Required:" +
+                " **DISCORD $discordPerms**]")
         return builder.withAutoDelete(30)
     }
 }

@@ -1,6 +1,5 @@
 package net.masterzach32.commands4k.builder
 
-import net.masterzach32.commands4k.AdvancedMessageBuilder
 import net.masterzach32.commands4k.Command
 import net.masterzach32.commands4k.CommandDocs
 import net.masterzach32.commands4k.Permission
@@ -29,20 +28,20 @@ class CommandBuilder(private val name: String): Builder<Command> {
         aliases = aliasArray.toList()
     }
 
-    fun hidden(bool: () -> Boolean) {
-        hidden = bool.invoke()
+    fun hidden(bool: Boolean) {
+        hidden = bool
     }
 
-    fun botPerm(perm: () -> Permission) {
-        botPerm = perm.invoke()
+    fun botPerm(perm: Permission) {
+        botPerm = perm
     }
 
     fun discordPerm(vararg permsArray: Permissions) {
         discordPerms = permsArray.toList()
     }
 
-    fun scope(scope: () -> Command.Scope) {
-        this.scope = scope.invoke()
+    fun scope(scope: Command.Scope) {
+        this.scope = scope
     }
 
     fun helpText(helpBuilder: HelpBuilder.() -> Unit) {
