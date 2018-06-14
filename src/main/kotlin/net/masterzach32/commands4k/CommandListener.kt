@@ -36,8 +36,10 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String,
     }
 
     override fun handle(event: MessageReceivedEvent) {
+        if (event.author.isBot)
+            return
         val commandPrefix = commandPrefix(event.guild)
-        if (event.author.isBot || !event.message.content.startsWith(commandPrefix))
+        if (!event.message.content.startsWith(commandPrefix))
             return
 
         val identifier: String
@@ -67,12 +69,21 @@ class CommandListener(private val commandPrefix: (IGuild?) -> String,
                     null //insufficientPermission(event.channel, userPerms, command.botPerm)
                 else if (event.guild != null &&
                         !event.author.getPermissionsForGuild(event.guild).containsAll(command.discordPerms))
-                    insufficientPermission(event.channel,
+                    insufficientPermission(
+                            event.channel,
                             command.discordPerms
-                                    .filter { !event.author.getPermissionsForGuild(event.guild).contains(it) })
+                                    .filter { !event.author.getPermissionsForGuild(event.guild).contains(it) }
+                    )
                 else {
-                    event.client.dispatcher.dispatch(CommandExecutedEvent(event.client, command, identifier,
-                            event.guild, event.channel, event.author))
+                    event.client.dispatcher.dispatch(
+                            CommandExecutedEvent(event.client,
+                                    command,
+                                    identifier,
+                                    event.guild,
+                                    event.channel,
+                                    event.author
+                            )
+                    )
                     command.execute(identifier, params, event, builder)
                 }
             } catch (e: MissingPermissionsException) {

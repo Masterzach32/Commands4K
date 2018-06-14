@@ -31,21 +31,23 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
     override fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent,
                          builder: AdvancedMessageBuilder): AdvancedMessageBuilder {
         val embed = EmbedBuilder().withColor(GREY)
+        val cmdPrefix = commandPrefix(event.guild)
+        val botPermission = event.author.botPermission(event.guild)
+
         if (args.isEmpty()) {
             if (!event.channel.isPrivate) {
                 embed.withDesc("${event.author.mention()} A list of commands has been sent to you privately.")
                 AdvancedMessageBuilder(event.channel).withEmbed(embed).build()
             }
-            val defaultCommandPrefix = commandPrefix(event.guild)
             builder.withChannel(event.client.getOrCreatePMChannel(event.author))
             embed.withTitle("Help and Info:")
             embed.withDesc("")
             var i = 0
-            while (i <= event.author.botPermission(event.guild).ordinal) {
+            while (i <= botPermission.ordinal) {
                 var str = ""
                 cmds.getCommandList()
                         .filter { it.botPerm == Permission.values()[i] }
-                        .forEach { str += defaultCommandPrefix + it.aliases[0] + "\n" }
+                        .forEach { str += cmdPrefix + it.aliases[0] + "\n" }
                 if (str.isEmpty())
                     str = "There are no commands for this permission level."
                 embed.appendField(Permission.values()[i].name, str, true)
@@ -54,9 +56,9 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
             embed.withDesc(
                     "**Note**: Command prefixes may be different per guild!\n" +
                             "**Permissions**: ${Permission.values().toList()}\n" +
-                            "To view more information for a command, use `${defaultCommandPrefix}help <command>`\n\n" +
+                            "To view more information for a command, use `${cmdPrefix}help <command>`\n\n" +
                             "Note you can only see the commands available to you with your permission " +
-                            "**${event.author.botPermission(event.guild)}** in **${event.guild?.name}**")
+                            "**$botPermission** in **${event.guild?.name}**")
             builder.withEmbed(embed)
         } else {
             val cmd = cmds.getCommandList().firstOrNull { it.aliases.contains(args[0]) }
@@ -72,7 +74,7 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                 if (cmd.help.hasUsage()) {
                     var str = ""
                     cmd.help.usage.forEach {
-                        str += "\n`${commandPrefix(event.guild)}${args[0]} ${it.key}` ${it.value}"
+                        str += "\n`$cmdPrefix${args[0]} ${it.key}` ${it.value}"
                     }
                     embed.appendField("Usage:", str, false)
                 }
