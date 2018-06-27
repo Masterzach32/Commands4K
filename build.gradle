@@ -1,5 +1,5 @@
 group 'net.masterzach32'
-version '1.0'
+version '1.2'
 
 buildscript {
     ext.kotlin_version = '1.2.41'

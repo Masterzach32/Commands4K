@@ -15,41 +15,21 @@ fun createCommand(name: String, builderFunc: CommandBuilder.() -> Unit): Command
 
 class CommandBuilder(private val name: String): Builder<Command> {
 
-    private var aliases = emptyList<String>()
-    private var hidden = false
-    private var scope = Command.Scope.ALL
-    private var botPerm = Permission.NORMAL
-    private var discordPerms = emptyList<Permissions>()
-    private var toggleTypingStatus = false
+    var aliases = emptyList<String>()
+    var hidden = false
+    var scope = Command.Scope.ALL
+    var botPerm = Permission.NORMAL
+    var discordPerms = emptyList<Permissions>()
+    var toggleTypingStatus = false
     private var cmdDocs = CommandDocs()
     private var exec = DEFAULT_EXEC
-
-    fun aliases(vararg aliasArray: String) {
-        aliases = aliasArray.toList()
-    }
-
-    fun hidden(bool: Boolean) {
-        hidden = bool
-    }
-
-    fun botPerm(perm: Permission) {
-        botPerm = perm
-    }
-
-    fun discordPerm(vararg permsArray: Permissions) {
-        discordPerms = permsArray.toList()
-    }
-
-    fun scope(scope: Command.Scope) {
-        this.scope = scope
-    }
 
     fun helpText(helpBuilder: HelpBuilder.() -> Unit) {
         val builder = HelpBuilder()
 
         helpBuilder.invoke(builder)
 
-        cmdDocs = builder.cmdHelp
+        cmdDocs = builder.build()
     }
 
     fun onEvent(eventWrapperFunc: EventBuilder.() -> Unit) {
