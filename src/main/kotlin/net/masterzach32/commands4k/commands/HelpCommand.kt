@@ -18,9 +18,11 @@ import sx.blah.discord.util.EmbedBuilder
  * @author Zach Kozar
  * @version 11/14/2017
  */
-internal class HelpCommand(private val cmds: CommandManager, private val commandPrefix: (IGuild?) -> String,
-                           private val botPermission: IUser.(IGuild?) -> Permission) :
-                           Command("Help", "help", "h", botPerm = Permission.NONE) {
+internal class HelpCommand(
+        private val cmds: CommandManager,
+        private val commandPrefix: (IGuild?) -> String,
+        private val botPermission: IUser.(IGuild?) -> Permission
+) : Command("Help", "help", "h", botPerm = Permission.NONE) {
 
     init {
         help.desc = "Display all available commands, or get more info on a specific command."
@@ -47,7 +49,7 @@ internal class HelpCommand(private val cmds: CommandManager, private val command
                 var str = ""
                 cmds.getCommandList()
                         .filter { it.botPerm == Permission.values()[i] }
-                        .forEach { str += cmdPrefix + it.aliases[0] + "\n" }
+                        .forEach { str += cmdPrefix + it.aliases.first() + "\n" }
                 if (str.isEmpty())
                     str = "There are no commands for this permission level."
                 embed.appendField(Permission.values()[i].name, str, true)

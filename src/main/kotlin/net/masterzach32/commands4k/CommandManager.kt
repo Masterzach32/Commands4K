@@ -1,6 +1,8 @@
 package net.masterzach32.commands4k
 
-open class CommandManager {
+import sx.blah.discord.api.events.EventDispatcher
+
+open class CommandManager(val dispatcher: EventDispatcher) {
 
     private val commandList = mutableListOf<Command>()
     private val quickLookup = mutableMapOf<String, Command>()
@@ -20,7 +22,7 @@ open class CommandManager {
                 else
                     return@Comparator -1
             } else
-                return@Comparator one.aliases[0].compareTo(two.aliases[0])
+                return@Comparator one.aliases.first().compareTo(two.aliases.first())
         })
     }
 
@@ -36,6 +38,8 @@ open class CommandManager {
             commandList.add(cmd)
 
             cmd.aliases.forEach { quickLookup[it] = cmd }
+
+            cmd.registerPassiveListeners(dispatcher)
         }
     }
 

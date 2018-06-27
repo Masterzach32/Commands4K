@@ -3,6 +3,7 @@ package net.masterzach32.commands4k
 import net.masterzach32.commands4k.commands.HelpCommand
 import net.masterzach32.commands4k.events.CommandExecutedEvent
 import org.slf4j.LoggerFactory
+import sx.blah.discord.api.events.EventDispatcher
 import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
 import sx.blah.discord.handle.obj.IChannel
@@ -25,8 +26,11 @@ import sx.blah.discord.util.RequestBuffer
  * @author Zach Kozar
  * @version 11/10/2017
  */
-class CommandListener(private val commandPrefix: (IGuild?) -> String,
-                      private val botPermission: IUser.(IGuild?) -> Permission) : CommandManager(),
+class CommandListener(
+        dispatcher: EventDispatcher,
+        private val commandPrefix: (IGuild?) -> String,
+        private val botPermission: IUser.(IGuild?) -> Permission
+) : CommandManager(dispatcher),
         IListener<MessageReceivedEvent> {
 
     private val logger = LoggerFactory.getLogger("Commands4K")

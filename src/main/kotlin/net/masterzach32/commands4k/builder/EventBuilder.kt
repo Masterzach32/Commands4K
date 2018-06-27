@@ -1,6 +1,8 @@
 package net.masterzach32.commands4k.builder
 
 import net.masterzach32.commands4k.AdvancedMessageBuilder
+import sx.blah.discord.api.events.Event
+import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
 
 val DEFAULT_EXEC: EventHandler = { null }
@@ -11,6 +13,8 @@ class EventBuilder : Builder<EventHandler> {
     private var privateFunc = DEFAULT_EXEC
     private var guildFunc = DEFAULT_EXEC
     private var allFunc = DEFAULT_EXEC
+
+    val listeners = mutableListOf<IListener<Event>>()
 
     fun noArgs(func: EventHandler) {
         noArgsFunc = func
@@ -26,6 +30,10 @@ class EventBuilder : Builder<EventHandler> {
 
     fun all(func: EventHandler) {
         allFunc = func
+    }
+
+    inline fun <reified E : Event> listen(crossinline func: (event: E) -> Unit) {
+        listeners.add(IListener { if (it is E) func.invoke(it) })
     }
 
     override fun build(): EventHandler {
