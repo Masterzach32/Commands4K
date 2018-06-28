@@ -37,6 +37,8 @@ class CommandListener(
 
     init {
         add(HelpCommand(this, commandPrefix, botPermission))
+
+        dispatcher.registerListener(this)
     }
 
     override fun handle(event: MessageReceivedEvent) {

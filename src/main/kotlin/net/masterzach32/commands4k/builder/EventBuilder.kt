@@ -32,8 +32,8 @@ class EventBuilder : Builder<EventHandler> {
         allFunc = func
     }
 
-    inline fun <reified E : Event> listen(crossinline func: (event: E) -> Unit) {
-        listeners.add(IListener { if (it is E) func.invoke(it) })
+    inline fun <reified E : Event> listen(crossinline func: E.() -> Unit) {
+        listeners.add(IListener { (it as? E)?.func() })
     }
 
     override fun build(): EventHandler {
