@@ -30,8 +30,7 @@ class CommandListener(
         dispatcher: EventDispatcher,
         private val commandPrefix: (IGuild?) -> String,
         private val botPermission: IUser.(IGuild?) -> Permission
-) : CommandManager(dispatcher),
-        IListener<MessageReceivedEvent> {
+) : CommandManager(dispatcher), IListener<MessageReceivedEvent> {
 
     private val logger = LoggerFactory.getLogger("Commands4K")
 

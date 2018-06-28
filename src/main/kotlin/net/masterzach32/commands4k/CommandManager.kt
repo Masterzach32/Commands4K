@@ -16,8 +16,8 @@ open class CommandManager(val dispatcher: EventDispatcher) {
     @Synchronized
     fun sortCommands() {
         commandList.sortWith(Comparator { one, two ->
-            if(one.botPerm.ordinal != two.botPerm.ordinal) {
-                if(one.botPerm.ordinal > two.botPerm.ordinal)
+            if(one.botPerm != two.botPerm) {
+                if(one.botPerm > two.botPerm)
                     return@Comparator 1
                 else
                     return@Comparator -1
@@ -38,8 +38,7 @@ open class CommandManager(val dispatcher: EventDispatcher) {
             commandList.add(cmd)
 
             cmd.aliases.forEach { quickLookup[it] = cmd }
-
-            cmd.registerPassiveListeners(dispatcher)
+            cmd.listeners.forEach { dispatcher.registerListener(it) }
         }
     }
 
@@ -47,5 +46,6 @@ open class CommandManager(val dispatcher: EventDispatcher) {
     fun remove(cmd: Command) {
         commandList.remove(cmd)
         cmd.aliases.forEach { quickLookup.remove(it) }
+        cmd.listeners.forEach { dispatcher.unregisterListener(it) }
     }
 }

@@ -1,15 +1,14 @@
 package net.masterzach32.commands4k
 
-import net.masterzach32.commands4k.builder.DEFAULT_EXEC
+import net.masterzach32.commands4k.builder.DEFAULT_BEHAVIOR
 import net.masterzach32.commands4k.builder.EventHandler
 import net.masterzach32.commands4k.builder.EventWrapper
 import sx.blah.discord.api.events.Event
-import sx.blah.discord.api.events.EventDispatcher
 import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
 import sx.blah.discord.handle.obj.Permissions
 
-open class Command(
+open class Command (
         val name: String,
         vararg aliases: String,
         val hidden: Boolean = false,
@@ -19,6 +18,21 @@ open class Command(
         val help: CommandDocs = CommandDocs(),
         val listeners: List<IListener<Event>> = listOf()
 ) {
+
+    @Deprecated("Use CommandBuilder's onEvent function to specify command scope.")
+    enum class Scope {
+        ALL, GUILD, PRIVATE
+    }
+
+    val aliases = mutableListOf<String>()
+
+    internal var defaultExec = DEFAULT_BEHAVIOR
+
+    init {
+        if(aliases.isEmpty())
+            throw IllegalArgumentException("$name must have at least one alias!")
+        this.aliases.addAll(aliases)
+    }
 
     constructor(
             name: String,
@@ -43,20 +57,6 @@ open class Command(
         defaultExec = exec
     }
 
-    enum class Scope {
-        ALL, GUILD, PRIVATE
-    }
-
-    val aliases = mutableSetOf<String>()
-
-    internal var defaultExec = DEFAULT_EXEC
-
-    init {
-        if(aliases.isEmpty())
-            throw IllegalArgumentException("$name must have at least one alias!")
-        this.aliases.addAll(aliases)
-    }
-
     open fun execute(cmdUsed: String, args: Array<String>, event: MessageReceivedEvent,
                          builder: AdvancedMessageBuilder): AdvancedMessageBuilder? {
         val wrapper = EventWrapper(cmdUsed, args, event, builder)
@@ -66,8 +66,6 @@ open class Command(
     fun matchesAlias(cmd: String): Boolean {
         return aliases.any { it == cmd.toLowerCase() }
     }
-
-    internal fun registerPassiveListeners(dispatcher: EventDispatcher) = listeners.forEach { dispatcher.registerListener(it) }
 
     override fun toString(): String {
         return "$name - $aliases\nMinimum Permission: $botPerm"

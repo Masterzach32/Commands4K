@@ -2,7 +2,7 @@ package net.masterzach32.commands4k.builder
 
 import net.masterzach32.commands4k.CommandDocs
 
-class HelpBuilder : Builder<CommandDocs> {
+class DocsBuilder : Builder<CommandDocs> {
 
     var description: String? = null
 

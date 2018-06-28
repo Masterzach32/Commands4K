@@ -18,8 +18,14 @@ import sx.blah.discord.handle.obj.IUser
  * @author Zach Kozar
  * @version 5/15/2018
  */
-class CommandExecutedEvent(client: IDiscordClient, command: Command, val aliasUsed: String, val guild: IGuild?,
-                           val channel: IChannel, val author: IUser) : CommandEvent(client, command) {
+class CommandExecutedEvent(
+        client: IDiscordClient,
+        command: Command,
+        val aliasUsed: String,
+        val guild: IGuild?,
+        val channel: IChannel,
+        val author: IUser
+) : CommandEvent(client, command) {
 
     fun inPrivateChannel(): Boolean = guild == null
 }

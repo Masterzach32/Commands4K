@@ -8,11 +8,7 @@ import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.obj.Permissions
 
 fun createCommand(name: String, builderFunc: CommandBuilder.() -> Unit): Command {
-    val builder = CommandBuilder(name)
-
-    builder.builderFunc()
-
-    return builder.build()
+    return CommandBuilder(name).apply(builderFunc).build()
 }
 
 class CommandBuilder(private val name: String): Builder<Command> {
@@ -24,24 +20,15 @@ class CommandBuilder(private val name: String): Builder<Command> {
     var discordPerms = emptyList<Permissions>()
     var toggleTypingStatus = false
     private var cmdDocs = CommandDocs()
-    private var exec = DEFAULT_EXEC
+    private var exec = DEFAULT_BEHAVIOR
     private val listeners = mutableListOf<IListener<Event>>()
 
-    fun helpText(helpBuilder: HelpBuilder.() -> Unit) {
-        val builder = HelpBuilder()
-
-        builder.helpBuilder()
-
-        cmdDocs = builder.build()
+    fun helpText(docsBuilder: DocsBuilder.() -> Unit) {
+        cmdDocs = DocsBuilder().apply(docsBuilder).build()
     }
 
-    fun onEvent(eventWrapperFunc: EventBuilder.() -> Unit) {
-        val builder = EventBuilder()
-
-        builder.eventWrapperFunc()
-        listeners.addAll(builder.listeners)
-
-        exec = builder.build()
+    fun onEvent(eventBehavior: EventBuilder.() -> Unit) {
+        exec = EventBuilder().apply(eventBehavior).also { listeners.addAll(it.listeners) }.build()
     }
 
     override fun build(): Command {
