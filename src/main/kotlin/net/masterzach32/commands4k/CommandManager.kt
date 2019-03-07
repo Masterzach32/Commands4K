@@ -1,6 +1,6 @@
 package net.masterzach32.commands4k
 
-import sx.blah.discord.api.events.EventDispatcher
+import discord4j.core.event.EventDispatcher
 
 open class CommandManager(val dispatcher: EventDispatcher) {
 
@@ -35,10 +35,23 @@ open class CommandManager(val dispatcher: EventDispatcher) {
                         .filter { other.matchesAlias(it) }
                         .forEach { throw IllegalArgumentException("Duplicate aliases: {${other.name}: $it} {${cmd.name}: $it}") }
             }
+            // verify argument order is valid
+            var hasInfinite: Boolean = false
+            var hasOptional: Boolean = false
+            cmd.args.forEach {
+                if (hasInfinite)
+                    throw IllegalArgumentException("No other arguments may come after an infinite argument.")
+                if (!it.required)
+                    hasOptional = true
+                else if (hasOptional)
+                    throw IllegalArgumentException("Required arguments may not come after optional arguments.")
+                if (it.infinite)
+                    hasInfinite = true
+            }
             commandList.add(cmd)
 
             cmd.aliases.forEach { quickLookup[it] = cmd }
-            cmd.listeners.forEach { dispatcher.registerListener(it) }
+            //cmd.listeners.forEach { dispatcher.registerListener(it) }
         }
     }
 
@@ -46,6 +59,6 @@ open class CommandManager(val dispatcher: EventDispatcher) {
     fun remove(cmd: Command) {
         commandList.remove(cmd)
         cmd.aliases.forEach { quickLookup.remove(it) }
-        cmd.listeners.forEach { dispatcher.unregisterListener(it) }
+        //cmd.listeners.forEach { dispatcher.unregisterListener(it) }
     }
 }

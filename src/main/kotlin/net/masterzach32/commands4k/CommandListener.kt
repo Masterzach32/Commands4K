@@ -1,18 +1,15 @@
 package net.masterzach32.commands4k
 
-import net.masterzach32.commands4k.commands.HelpCommand
-import net.masterzach32.commands4k.events.CommandExecutedEvent
+import discord4j.core.`object`.entity.Guild
+import discord4j.core.`object`.entity.User
+import discord4j.core.`object`.util.Permission
+import discord4j.core.event.EventDispatcher
+import discord4j.core.event.domain.message.MessageCreateEvent
+import discord4j.core.spec.MessageCreateSpec
 import org.slf4j.LoggerFactory
-import sx.blah.discord.api.events.EventDispatcher
-import sx.blah.discord.api.events.IListener
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
-import sx.blah.discord.handle.obj.IChannel
-import sx.blah.discord.handle.obj.IGuild
-import sx.blah.discord.handle.obj.IUser
-import sx.blah.discord.handle.obj.Permissions
-import sx.blah.discord.util.EmbedBuilder
-import sx.blah.discord.util.MissingPermissionsException
-import sx.blah.discord.util.RequestBuffer
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import java.util.function.Consumer
 
 /*
  * Commands4K - Created on 11/10/2017
@@ -26,117 +23,93 @@ import sx.blah.discord.util.RequestBuffer
  * @author Zach Kozar
  * @version 11/10/2017
  */
+@Suppress("LABEL_NAME_CLASH")
 class CommandListener(
         dispatcher: EventDispatcher,
-        private val commandPrefix: (IGuild?) -> String,
-        private val botPermission: IUser.(IGuild?) -> Permission
-) : CommandManager(dispatcher), IListener<MessageReceivedEvent> {
+        private val commandPrefix: (Guild?) -> String,
+        private val botPermission: User.(Guild?) -> BotPermissions
+) : CommandManager(dispatcher), Consumer<MessageCreateEvent> {
 
     private val logger = LoggerFactory.getLogger("Commands4K")
 
     init {
-        add(HelpCommand(this, commandPrefix, botPermission))
-
-        dispatcher.registerListener(this)
+        dispatcher.on(MessageCreateEvent::class).subscribe(this)
     }
 
-    override fun handle(event: MessageReceivedEvent) {
-        if (event.author.isBot)
-            return
-        val commandPrefix = commandPrefix(event.guild)
-        if (!event.message.content.startsWith(commandPrefix))
-            return
+    override fun accept(event: MessageCreateEvent) {
+        val message = event.message
 
-        val identifier: String
-        val params: Array<String>
+        Mono.justOrEmpty(event.message.content)
+                .filter { message.author.orElse(null)?.isBot?.not() ?: false }
+                .map { it.split(" ") }
+                .flatMap { content ->
+                    message.channel.flatMap { channel ->
+                        event.guild.flatMap { guild ->
+                            Mono.just(commandPrefix(guild)).flatMap { commandPrefix ->
+                                Flux.fromIterable(getCommandList())
+                                        .filter { content.first().startsWith(commandPrefix) }
+                                        .filter { it.aliases.contains(content.first().drop(1)) }
+                                        .flatMap { cmd ->
+                                            val postArgs = mutableMapOf<String, Argument>()
+                                            if (cmd.processArgs) {
+                                                val preArgs = content.drop(1)
 
-        val tmp = event.message.content
-                .substring(commandPrefix.length)
-                .split(" ").toTypedArray()
-        identifier = tmp[0]
-        params = tmp.copyOfRange(1, tmp.size)
-        val command = getCommand(identifier)
-        if (command != null) {
-            if (command.scope == Command.Scope.GUILD && event.guild == null ||
-                    command.scope == Command.Scope.PRIVATE && event.guild != null)
-                return
-            val userPerms = event.author.botPermission(event.guild)
+                                                val requiredArgs = cmd.args.filter { it.required }.size
+                                                if (preArgs.size < requiredArgs)
+                                                    return@flatMap channel.createMessage { invalidArgsResponse(it, cmd) }
 
-            logger.debug("Shard: ${event.message.shard.info[0]} Guild: ${event.guild?.stringID} " +
-                    "Channel: ${event.channel.stringID} User: ${event.author.stringID} Command: " +
-                    "\"${event.message.content}\"")
+                                                try {
+                                                    for (i in cmd.args.indices) {
+                                                        if (cmd.args[i].infinite) {
+                                                            val tmp = mutableListOf<Any>()
+                                                            for (j in i until preArgs.size)
+                                                                tmp.add(cmd.args[i].parser.invoke(preArgs[j]))
+                                                            postArgs[cmd.args[i].key] = Argument(tmp, cmd.args[i])
+                                                        } else if (!cmd.args[i].required) {
+                                                            if (preArgs.size > i)
+                                                                postArgs[cmd.args[i].key] = Argument(
+                                                                        cmd.args[i].parser.invoke(preArgs[i]),
+                                                                        cmd.args[i]
+                                                                )
+                                                        } else
+                                                            postArgs[cmd.args[i].key] = Argument(
+                                                                    cmd.args[i].parser.invoke(preArgs[i]),
+                                                                    cmd.args[i]
+                                                            )
+                                                    }
+                                                } catch (e: Exception) {
+                                                    return@flatMap channel.createMessage { parseErrorResponse(it, cmd, e) }
+                                                }
+                                            } else {
+                                                postArgs[cmd.args[0].key] = Argument(
+                                                        message.content.get().drop(message.content.get().indexOf(" ") + 1),
+                                                        cmd.args[0]
+                                                )
+                                            }
 
-            val embed = EmbedBuilder().withColor(RED)
-            val response = try {
-                val builder = AdvancedMessageBuilder(event.channel)
-
-                if (userPerms < command.botPerm)
-                    null //insufficientPermission(event.channel, userPerms, command.botPerm)
-                else if (event.guild != null &&
-                        !event.author.getPermissionsForGuild(event.guild).containsAll(command.discordPerms))
-                    insufficientPermission(
-                            event.channel,
-                            command.discordPerms
-                                    .filter { !event.author.getPermissionsForGuild(event.guild).contains(it) }
-                    )
-                else {
-                    event.client.dispatcher.dispatch(
-                            CommandExecutedEvent(event.client,
-                                    command,
-                                    identifier,
-                                    event.guild,
-                                    event.channel,
-                                    event.author
-                            )
-                    )
-                    command.execute(identifier, params, event, builder)
-                }
-            } catch (e: MissingPermissionsException) {
-                embed.withTitle("Missing Permissions!")
-                embed.withDesc("I need the Discord permission ${e.message} to use that command!")
-                AdvancedMessageBuilder(event.channel).withEmbed(embed)
-            } catch (t: Throwable) {
-                t.printStackTrace()
-                embed.withTitle("An error occurred while executing that command!")
-                var str = "${t.javaClass.name}: ${t.message}\n"
-                var i = 0
-                while (i < t.stackTrace.size && i < 6) {
-                    str += "\tat ${t.stackTrace[i]}\n"
-                    i++
-                }
-                if (t.stackTrace.size > 6)
-                    str += "\t+ ${t.stackTrace.size-6} more"
-                embed.withDesc(str)
-                AdvancedMessageBuilder(event.channel).withEmbed(embed)
-            }
-            RequestBuffer.request {
-                try {
-                    response?.build()
-                } catch (e: MissingPermissionsException) {
-                    if (e.missingPermissions.contains(Permissions.EMBED_LINKS)) {
-                        AdvancedMessageBuilder(event.channel).withContent("I use discord embeds for the " +
-                                "majority of my features. In order to work properly, I need the **Embed Links** permission.").build()
+                                            cmd.execute(CommandContext(event, content.first().drop(1), channel, guild, postArgs))
+                                        }.next()
+                            }
+                        }
                     }
-                    e.printStackTrace()
-                }
-            }
+                }.subscribe()
+    }
+
+    private fun invalidArgsResponse(msgSpec: MessageCreateSpec, command: Command) {
+        msgSpec.setEmbed {
+            it.setDescription("invalid args for ${command.name}")
+            it.setColor(RED)
         }
     }
 
-    private fun insufficientPermission(channel: IChannel, perm: Permission, required: Permission): AdvancedMessageBuilder {
-        val builder = AdvancedMessageBuilder(channel)
-        val embed = EmbedBuilder().withColor(RED)
-        builder.withContent("**You do not have the permissions required to use this command.** [Required:" +
-                " **$required**, you have **$perm**]")
-        return builder.withAutoDelete(30)
-    }
-
-    private fun insufficientPermission(channel: IChannel, discordPerms: List<Permissions>): AdvancedMessageBuilder {
-        val builder = AdvancedMessageBuilder(channel)
-        val embed = EmbedBuilder().withColor(RED)
-        embed.withTitle("Permissions Error")
-        embed.withDesc("**You do not have the permissions required to use this command.** [Required:" +
-                " **DISCORD $discordPerms**]")
-        return builder.withAutoDelete(30)
+    private fun parseErrorResponse(msgSpec: MessageCreateSpec, command: Command, e: Exception) {
+        msgSpec.setEmbed {
+            when (e) {
+                is NumberFormatException -> it.setDescription("Could not parse a number in the arguments given. " +
+                        "Perhaps you have an invalid character in your args, or the number is too large")
+                else -> it.setDescription("An unknown error occurred: $e")
+            }
+            it.setColor(RED)
+        }
     }
 }
