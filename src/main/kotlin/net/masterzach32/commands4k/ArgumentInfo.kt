@@ -47,6 +47,10 @@ data class ArgumentInfo<A : Any>(
          */
         val emptyChecker: EmptyChecker<in A>?,
         /**
+         * Function to handle errors when the command fails.
+         */
+        val errorHandler: ErrorHandler?,
+        /**
          * The default value for the argument.
          */
         val default: A?

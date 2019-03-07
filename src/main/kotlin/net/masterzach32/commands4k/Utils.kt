@@ -28,6 +28,7 @@ val GREY = Color(200, 200, 200)
 typealias Parser<A> = (String) -> A
 typealias Validator<A> = (A) -> Boolean
 typealias EmptyChecker<A> = (A) -> Boolean
+typealias ErrorHandler = (String, Exception) -> Unit
 
 fun <E : Event> EventDispatcher.on(event: KClass<E>): Flux<E> = on(event.java)
 
