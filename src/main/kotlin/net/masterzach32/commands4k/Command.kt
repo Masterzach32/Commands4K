@@ -3,7 +3,7 @@ package net.masterzach32.commands4k
 import discord4j.core.`object`.util.Permission
 import reactor.core.publisher.Mono
 
-open class Command (
+class Command (
         /**
          * The name of the command.
          */

@@ -25,16 +25,11 @@ import java.util.function.Consumer
  */
 @Suppress("LABEL_NAME_CLASH")
 class CommandListener(
-        dispatcher: EventDispatcher,
         private val commandPrefix: (Guild?) -> String,
         private val botPermission: User.(Guild?) -> BotPermissions
-) : CommandManager(dispatcher), Consumer<MessageCreateEvent> {
+) : CommandManager(), Consumer<MessageCreateEvent> {
 
     private val logger = LoggerFactory.getLogger("Commands4K")
-
-    init {
-        dispatcher.on(MessageCreateEvent::class).subscribe(this)
-    }
 
     override fun accept(event: MessageCreateEvent) {
         val message = event.message
@@ -98,6 +93,8 @@ class CommandListener(
                     }
                 }.subscribe()
     }
+
+    fun registerOnDispatcher(dispatcher: EventDispatcher) = dispatcher.on(MessageCreateEvent::class).subscribe(this)
 
     private fun invalidArgsResponse(msgSpec: MessageCreateSpec, command: Command) {
         msgSpec.setEmbed {

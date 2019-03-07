@@ -2,7 +2,7 @@ package net.masterzach32.commands4k
 
 import discord4j.core.event.EventDispatcher
 
-open class CommandManager(val dispatcher: EventDispatcher) {
+open class CommandManager {
 
     private val commandList = mutableListOf<Command>()
     private val quickLookup = mutableMapOf<String, Command>()
