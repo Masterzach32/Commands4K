@@ -1,7 +1,5 @@
 package net.masterzach32.commands4k
 
-import discord4j.core.event.EventDispatcher
-
 open class CommandManager {
 
     private val commandList = mutableListOf<Command>()
@@ -36,8 +34,8 @@ open class CommandManager {
                         .forEach { throw IllegalArgumentException("Duplicate aliases: {${other.name}: $it} {${cmd.name}: $it}") }
             }
             // verify argument order is valid
-            var hasInfinite: Boolean = false
-            var hasOptional: Boolean = false
+            var hasInfinite = false
+            var hasOptional = false
             cmd.args.forEach {
                 if (hasInfinite)
                     throw IllegalArgumentException("No other arguments may come after an infinite argument.")
@@ -51,7 +49,6 @@ open class CommandManager {
             commandList.add(cmd)
 
             cmd.aliases.forEach { quickLookup[it] = cmd }
-            //cmd.listeners.forEach { dispatcher.registerListener(it) }
         }
     }
 
@@ -59,6 +56,5 @@ open class CommandManager {
     fun remove(cmd: Command) {
         commandList.remove(cmd)
         cmd.aliases.forEach { quickLookup.remove(it) }
-        //cmd.listeners.forEach { dispatcher.unregisterListener(it) }
     }
 }
