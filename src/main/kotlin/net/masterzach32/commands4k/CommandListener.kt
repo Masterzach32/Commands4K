@@ -51,14 +51,15 @@ class CommandListener(
                                         .filter { it.aliases.contains(content.first().drop(1)) }
                                         .flatMap { cmd ->
                                             val postArgs = mutableMapOf<String, Argument>()
-                                            if (cmd.processArgs) {
-                                                val preArgs = content.drop(1)
+                                            try {
+                                                if (cmd.processArgs) {
+                                                    val preArgs = content.drop(1)
 
-                                                val requiredArgs = cmd.args.filter { it.required }.size
-                                                if (preArgs.size < requiredArgs)
-                                                    return@flatMap channel.createMessage { invalidArgsResponse(it, cmd) }
+                                                    val requiredArgs = cmd.args.filter { it.required }.size
+                                                    if (preArgs.size < requiredArgs)
+                                                        return@flatMap channel.createMessage { invalidArgsResponse(it, cmd) }
 
-                                                try {
+
                                                     for (i in cmd.args.indices) {
                                                         if (cmd.args[i].infinite) {
                                                             val tmp = mutableListOf<Any>()
@@ -77,17 +78,20 @@ class CommandListener(
                                                                     cmd.args[i]
                                                             )
                                                     }
-                                                } catch (e: Exception) {
-                                                    return@flatMap channel.createMessage { parseErrorResponse(it, cmd, e) }
+                                                } else {
+                                                    postArgs[cmd.args[0].key] = Argument(
+                                                            message.content.get().drop(message.content.get().indexOf(" ") + 1),
+                                                            cmd.args[0]
+                                                    )
                                                 }
-                                            } else {
-                                                postArgs[cmd.args[0].key] = Argument(
-                                                        message.content.get().drop(message.content.get().indexOf(" ") + 1),
-                                                        cmd.args[0]
-                                                )
+                                            } catch (e: Exception) {
+                                                return@flatMap channel.createMessage { parseErrorResponse(it, cmd, e) }
                                             }
-
-                                            cmd.execute(CommandContext(event, content.first().drop(1), channel, guild, postArgs))
+                                            try {
+                                                cmd.execute(CommandContext(event, content.first().drop(1), channel, guild, postArgs))
+                                            } catch (e: Exception) {
+                                                channel.createMessage { commandExceptionResponse(it, cmd, e) }
+                                            }
                                         }.next()
                             }
                         }
@@ -109,6 +113,13 @@ class CommandListener(
                         "Perhaps you have an invalid character in your args, or the number is too large")
                 else -> it.setDescription("An unknown error occurred: $e")
             }
+            it.setColor(RED)
+        }
+    }
+
+    private fun commandExceptionResponse(msgSpec: MessageCreateSpec, command: Command, e: Exception) {
+        msgSpec.setEmbed {
+            it.setDescription("Command ${command.name} threw an error on execution: $e")
             it.setColor(RED)
         }
     }

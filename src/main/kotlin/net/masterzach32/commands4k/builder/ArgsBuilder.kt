@@ -42,13 +42,14 @@ class ArgsBuilder : Builder<List<ArgumentInfo<Any>>> {
         var parser: Parser<out A>? = null
         var validator: Validator<in A>? = null
         var emptyChecker: EmptyChecker<in A>? = null
+        var errorHandler: ErrorHandler? = null
         var default: A? = null
 
         override fun build(): ArgumentInfo<A> {
             if (key == null)
                 throw IllegalArgumentException("Argument key cannot be null!")
             if (type == null)
-                throw IllegalArgumentException("Argument type cannot be null! (this shouldnt happen)")
+                throw IllegalArgumentException("Argument type cannot be null! (this shouldn't happen)")
             if (parser == null)
                 throw IllegalArgumentException("Argument parser cannot be null!")
             if (label == null)
@@ -56,7 +57,7 @@ class ArgsBuilder : Builder<List<ArgumentInfo<Any>>> {
             if (default != null)
                 required = false
 
-            return ArgumentInfo(key!!, type!!, label!!, required, infinite, max, min, parser!!, validator, emptyChecker, default)
+            return ArgumentInfo(key!!, type!!, label!!, required, infinite, max, min, parser!!, validator, emptyChecker, errorHandler, default)
         }
     }
 

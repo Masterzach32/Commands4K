@@ -40,14 +40,20 @@ data class ArgumentInfo<A : Any>(
         val parser: Parser<out A>,
         /**
          * Validator function for checking whether the value for the argument is valid.
+         *
+         * This function is not implemented in code yet, so it will not do anything.
          */
         val validator: Validator<in A>?,
         /**
          * Function to check whether the argument is empty.
+         *
+         * This function is not implemented in code yet, so it will not do anything.
          */
         val emptyChecker: EmptyChecker<in A>?,
         /**
-         * Function to handle errors when the command fails.
+         * Function to handle errors when parsing an argument fails.
+         *
+         * This function is not implemented in code yet, so it will not do anything.
          */
         val errorHandler: ErrorHandler?,
         /**
