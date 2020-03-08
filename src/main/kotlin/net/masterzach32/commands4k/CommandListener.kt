@@ -42,7 +42,7 @@ class CommandListener(
                         event.guild.flatMap { guild ->
                             Mono.just(commandPrefix(guild)).flatMap { commandPrefix ->
                                 Flux.fromIterable(getCommandList())
-                                        .filter { content.first().startsWith(commandPrefix) }
+                                        .filter { content.isNotEmpty() && content.first().startsWith(commandPrefix) }
                                         .filter { it.aliases.contains(content.first().drop(1)) }
                                         .flatMap { cmd ->
                                             val postArgs = mutableMapOf<String, Argument>()
@@ -79,6 +79,15 @@ class CommandListener(
                                                             cmd.args[0]
                                                     )
                                                 }
+
+                                                postArgs
+                                                        .map { it.value }
+                                                        .filterNot { it.info.validator?.invoke(it.value) ?: true }
+                                                        .run {
+                                                            if (isNotEmpty())
+                                                                throw IllegalArgumentException("${first().value} is " +
+                                                                        "not a valid value for the arg ${first().info.label}")
+                                                        }
                                             } catch (e: Exception) {
                                                 return@flatMap channel.createMessage { parseErrorResponse(it, cmd, e) }
                                             }

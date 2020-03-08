@@ -4,28 +4,15 @@ import net.masterzach32.commands4k.*
 import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 class ArgsBuilder : Builder<List<ArgumentInfo<Any>>> {
 
     val args = mutableListOf<ArgumentInfo<*>>()
 
-    @Suppress("UNCHECKED_CAST")
     inline fun <reified A : Any> arg(func: ArgsInfoBuilder<A>.() -> Unit) {
-        args.add(ArgsInfoBuilder<A>()
-                .apply { type = A::class }
-                .apply { parser = argInfoPreBuild(A::class) as Parser<out A>? }
-                .apply(func).build())
+        args.add(ArgsInfoBuilder<A>().apply { type = A::class }.apply(func).build())
     }
 
-    fun argInfoPreBuild(type: KClass<*>): Parser<out Any>? {
-        return when (type) {
-            String::class -> STRING_PARSER
-            Double::class -> DECIMAL_PARSER
-            Int::class -> INTEGER_PARSER
-            else -> null
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
     override fun build(): List<ArgumentInfo<Any>> {
         return args.toList() as List<ArgumentInfo<Any>>
     }
@@ -33,7 +20,7 @@ class ArgsBuilder : Builder<List<ArgumentInfo<Any>>> {
     class ArgsInfoBuilder<A : Any> : Builder<ArgumentInfo<A>> {
 
         var key: String? = null
-        var type: KClass<A>? = null
+        lateinit var type: KClass<A>
         var label: String? = null
         var required: Boolean = true
         var infinite: Boolean = false
@@ -44,6 +31,15 @@ class ArgsBuilder : Builder<List<ArgumentInfo<Any>>> {
         var emptyChecker: EmptyChecker<in A>? = null
         var errorHandler: ErrorHandler? = null
         var default: A? = null
+
+        init {
+            parser = when (type) {
+                String::class -> STRING_PARSER
+                Double::class -> DECIMAL_PARSER
+                Int::class -> INTEGER_PARSER
+                else -> null
+            } as Parser<out A>
+        }
 
         override fun build(): ArgumentInfo<A> {
             if (key == null)
@@ -57,7 +53,30 @@ class ArgsBuilder : Builder<List<ArgumentInfo<Any>>> {
             if (default != null)
                 required = false
 
-            return ArgumentInfo(key!!, type!!, label!!, required, infinite, max, min, parser!!, validator, emptyChecker, errorHandler, default)
+            if (min != null || max != null) {
+                validator = {
+                    var valid = true
+                    val _min = min
+                    val _max = max
+                    if (_min != null) {
+                        valid = when (it) {
+                            is String -> it.length > _min
+                            is Number -> it.toDouble() > _min
+                            else -> true
+                        }
+                    }
+                    if (_max != null) {
+                        valid = when (it) {
+                            is String -> it.length < _max
+                            is Number -> it.toDouble() < _max
+                            else -> true
+                        }
+                    }
+                    valid && validator?.invoke(it) ?: true
+                }
+            }
+
+            return ArgumentInfo(key!!, type, label!!, required, infinite, max, min, parser!!, validator, emptyChecker, errorHandler, default)
         }
     }
 
